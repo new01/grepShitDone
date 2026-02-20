@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 PASS=0
 FAIL=0
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"

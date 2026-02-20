@@ -27,6 +27,7 @@ if [ ! -f "$SETTINGS" ]; then
     "$HOOK_CMD" | jq . > "$SETTINGS"
 else
   # Check if our hook is already registered
+  # || echo 0: intentional set -e escape — tolerate corrupt JSON rather than aborting install
   ALREADY=$(jq --arg cmd "$HOOK_CMD" \
     '[.hooks.SessionStart[]?.hooks[]? | select(.command == $cmd)] | length' \
     "$SETTINGS" 2>/dev/null || echo 0)
