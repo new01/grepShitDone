@@ -15,7 +15,10 @@ Apply these rules for every search operation:
 
 ### Use built-in `Grep` when:
 - Exact text match: specific function name, import statement, string literal
-- File patterns: use `Glob` instead
+
+### Use `Glob` when:
+- File path patterns: `**/*.go`, `src/**/*.ts`, `**/test_*.py`
+- Listing files by extension or directory structure
 
 ### Use Bash `grep` directly (not grepai) when:
 - GSD orchestration operations: checkpoint detection, plan frontmatter parsing, STATE.md
