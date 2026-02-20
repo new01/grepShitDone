@@ -27,15 +27,15 @@ check "exits 0 when grepai not installed" "[ $RET -eq 0 ]"
 export PATH="$OLD_PATH"
 
 # --- Setup: mock grepai binary and temp home ---
-MOCK_BIN="$(mktemp -d)"
+MOCK_BIN="$(mktemp -d)" || { echo "mktemp failed"; exit 1; }
 cat > "$MOCK_BIN/grepai" << 'GREPAI'
 #!/bin/sh
 exit 0
 GREPAI
 chmod +x "$MOCK_BIN/grepai"
 
-WORK_DIR="$(mktemp -d)"
-FAKE_HOME="$(mktemp -d)"
+WORK_DIR="$(mktemp -d)" || { echo "mktemp failed"; exit 1; }
+FAKE_HOME="$(mktemp -d)" || { echo "mktemp failed"; exit 1; }
 mkdir -p "$FAKE_HOME/.claude/grepshitdone"
 cp "$SCRIPT_DIR/adapter/SKILL.md" "$FAKE_HOME/.claude/grepshitdone/SKILL.md"
 
@@ -52,7 +52,7 @@ check "exits 0 when grepai is installed" "[ $RET -eq 0 ]"
 
 # --- Tests 3 & 4: run hook in a fresh isolated directory ---
 # Using a dedicated temp dir makes these tests independent of Test 2's side effects.
-FRESH_DIR="$(mktemp -d)"
+FRESH_DIR="$(mktemp -d)" || { echo "mktemp failed"; exit 1; }
 cd "$FRESH_DIR"
 /bin/sh "$SCRIPT_DIR/hook.sh" >/dev/null 2>&1
 
