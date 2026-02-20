@@ -4,6 +4,10 @@ PASS=0
 FAIL=0
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+# Cleanup trap — uses :- defaults so it is safe even if variables are not yet set
+# when the trap fires (e.g. early exit from an error before setup completes).
+trap 'rm -rf "${MOCK_BIN:-}" "${WORK_DIR:-}" "${FAKE_HOME:-}" "${FRESH_DIR:-}"' EXIT INT TERM
+
 check() {
   if eval "$2"; then
     echo "PASS: $1"
@@ -18,7 +22,8 @@ check() {
 OLD_PATH="$PATH"
 export PATH="/nonexistent"
 /bin/sh "$SCRIPT_DIR/hook.sh" >/dev/null 2>&1
-check "exits 0 when grepai not installed" "[ $? -eq 0 ]"
+RET=$?
+check "exits 0 when grepai not installed" "[ $RET -eq 0 ]"
 export PATH="$OLD_PATH"
 
 # --- Setup: mock grepai binary and temp home ---
@@ -39,23 +44,34 @@ OLD_HOME="$HOME"
 export PATH="$MOCK_BIN:$PATH"
 export HOME="$FAKE_HOME"
 
-/bin/sh "$SCRIPT_DIR/hook.sh" >/dev/null 2>&1
-RET=$?
-
 # --- Test 2: exits 0 when grepai is on PATH ---
-# (re-run in workdir)
 cd "$WORK_DIR"
 /bin/sh "$SCRIPT_DIR/hook.sh" >/dev/null 2>&1
-check "exits 0 when grepai is installed" "[ $? -eq 0 ]"
+RET=$?
+check "exits 0 when grepai is installed" "[ $RET -eq 0 ]"
+
+# --- Tests 3 & 4: run hook in a fresh isolated directory ---
+# Using a dedicated temp dir makes these tests independent of Test 2's side effects.
+FRESH_DIR="$(mktemp -d)"
+cd "$FRESH_DIR"
+/bin/sh "$SCRIPT_DIR/hook.sh" >/dev/null 2>&1
 
 # --- Test 3: creates .agents/skills/grepai/ directory ---
-check "creates .agents/skills/grepai/" "[ -d '$WORK_DIR/.agents/skills/grepai' ]"
+check "creates .agents/skills/grepai/" "[ -d '$FRESH_DIR/.agents/skills/grepai' ]"
 
 # --- Test 4: writes SKILL.md into the project ---
-check "writes SKILL.md" "[ -f '$WORK_DIR/.agents/skills/grepai/SKILL.md' ]"
+check "writes SKILL.md" "[ -f '$FRESH_DIR/.agents/skills/grepai/SKILL.md' ]"
+
+# --- Note on daemon-already-running branch ---
+# The branch in hook.sh where pgrep detects an existing "grepai watch" process
+# and skips starting a new one is not tested here because renaming an arbitrary
+# process to match a pgrep pattern is not portable across platforms.
 
 # --- Test 5: idempotent .gitignore update ---
+# .agents/ is already populated from prior hook runs; that is fine because this
+# test only asserts .gitignore idempotency, not directory creation.
 touch "$WORK_DIR/.gitignore"
+cd "$WORK_DIR"
 /bin/sh "$SCRIPT_DIR/hook.sh" >/dev/null 2>&1
 /bin/sh "$SCRIPT_DIR/hook.sh" >/dev/null 2>&1
 /bin/sh "$SCRIPT_DIR/hook.sh" >/dev/null 2>&1
@@ -65,7 +81,7 @@ check "gitignore entry written exactly once across multiple runs" "[ '$COUNT' -e
 # --- Cleanup ---
 export PATH="$OLD_PATH"
 export HOME="$OLD_HOME"
-rm -rf "$MOCK_BIN" "$WORK_DIR" "$FAKE_HOME"
+# Temp dirs are removed by the EXIT trap above.
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

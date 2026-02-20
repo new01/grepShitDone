@@ -7,8 +7,9 @@
 # Nothing to do if grepai isn't installed
 command -v grepai >/dev/null 2>&1 || exit 0
 
-# Start grepai watch daemon if not already running
-if ! pgrep -f "grepai watch" >/dev/null 2>&1; then
+# Start grepai watch daemon if not already running.
+# Bracketed first char prevents the pgrep pattern from matching itself.
+if ! pgrep -f "[g]repai watch" >/dev/null 2>&1; then
   nohup grepai watch >/dev/null 2>&1 &
 fi
 
@@ -19,7 +20,7 @@ SKILL_DST=".agents/skills/grepai/SKILL.md"
 
 if [ -f "$SKILL_SRC" ]; then
   mkdir -p ".agents/skills/grepai"
-  cp "$SKILL_SRC" "$SKILL_DST"
+  cp "$SKILL_SRC" "$SKILL_DST" 2>/dev/null
 fi
 
 # Add .agents/skills/grepai/ to .gitignore (idempotent — only adds if absent)
