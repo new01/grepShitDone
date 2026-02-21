@@ -342,7 +342,7 @@ cat > "$HOME/.claude/settings.json" << 'EOF'
         "hooks": [
           {
             "type": "command",
-            "command": "node \"/Users/adevine/.claude/hooks/gsd-check-update.js\""
+            "command": "node \"/Users/testuser/.claude/hooks/gsd-check-update.js\""
           }
         ]
       }

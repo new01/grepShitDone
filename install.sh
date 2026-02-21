@@ -1,6 +1,6 @@
 #!/bin/sh
 # grepShitDone installer
-# Run once after: git clone https://github.com/<org>/grepShitDone && cd grepShitDone
+# Run once after: git clone https://github.com/cyne-wulf/grepShitDone && cd grepShitDone
 # Safe to re-run after git pull — all operations are idempotent.
 set -e
 

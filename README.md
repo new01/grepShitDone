@@ -14,7 +14,7 @@ Install once. Never think about it again.
 ## Install
 
 ```bash
-git clone https://github.com/<org>/grepShitDone
+git clone https://github.com/cyne-wulf/grepShitDone
 cd grepShitDone
 ./install.sh
 ```
